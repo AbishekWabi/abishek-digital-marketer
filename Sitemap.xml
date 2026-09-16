@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://abishekwabi.github.io/abishek-digital-marketer/</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
+ 
+<!--
+  Note: This is a single-page site. All sections below are in-page
+  anchors on the same URL (https://abishekwabi.github.io/abishek-digital-marketer/)
+  and are NOT separate crawlable pages, so they are not listed as
+  individual <url> entries. Listed here for reference only:
+ 
+    #home
+    #about
+    #skills
+    #experience
+    #projects
+    #blog
+    #faq
+    #resume
+    #contact
+ 
+  Other resources on the site (not HTML pages, so excluded from sitemap):
+    https://abishekwabi.github.io/abishek-digital-marketer/Abishek_W_Digital_Marketer_Resume.pdf
+    https://abishekwabi.github.io/abishek-digital-marketer/image.jpeg
+    https://abishekwabi.github.io/abishek-digital-marketer/profile.jpeg
+-->
