@@ -1667,3 +1667,6 @@ footer hr {
         border-width: 6px;
     }
 }
+.experience-card + .experience-card {
+    margin-top: 24px;
+}
