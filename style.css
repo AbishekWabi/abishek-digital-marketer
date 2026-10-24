@@ -1738,3 +1738,7 @@ button:focus-visible {
     outline-offset: 3px;
     border-radius: 6px;
 }
+.service-area {
+    color: #6b7280;
+    font-size: 0.87rem;
+}
