@@ -1579,13 +1579,20 @@ footer hr {
     }
 }
 
+
 /* =========================================================
    FIXES: image face, mobile menu, links, ripple
 ========================================================= */
 
-.profile-image { object-position: center top; }
+.profile-image {
+    object-position: center top;
+}
 
-.btn { position: relative; overflow: hidden; }
+.btn {
+    position: relative;
+    overflow: hidden;
+}
+
 .btn .ripple {
     position: absolute;
     width: 10px;
@@ -1596,12 +1603,17 @@ footer hr {
     animation: rippleOut 0.6s ease-out;
     pointer-events: none;
 }
+
 @keyframes rippleOut {
-    to { transform: translate(-50%, -50%) scale(25); opacity: 0; }
+    to {
+        transform: translate(-50%, -50%) scale(25);
+        opacity: 0;
+    }
 }
 
 .about-content a,
-.blog-content a {
+.blog-content a,
+.faq-answer a {
     color: #2563eb;
     font-weight: 600;
     text-decoration: underline;
@@ -1623,7 +1635,10 @@ footer hr {
 /* Tablet and phone: hamburger menu + clean image */
 @media (max-width: 850px) {
 
-    .menu-toggle { display: grid; place-items: center; }
+    .menu-toggle {
+        display: grid;
+        place-items: center;
+    }
 
     .nav-links {
         display: none;
@@ -1640,17 +1655,37 @@ footer hr {
         box-shadow: 0 18px 30px rgba(15, 23, 42, 0.08);
     }
 
-    .nav-links.open { display: flex; }
+    .nav-links.open {
+        display: flex;
+    }
 
-    .nav-links a { padding: 13px 4px; font-size: 1rem; }
-    .nav-links a::after { display: none; }
-    .nav-links .nav-contact { margin-top: 8px; text-align: center; }
+    .nav-links a {
+        padding: 13px 4px;
+        font-size: 1rem;
+    }
+
+    .nav-links a::after {
+        display: none;
+    }
+
+    .nav-links .nav-contact {
+        margin-top: 8px;
+        text-align: center;
+    }
 
     /* hide floating cards so they never cover the face */
-    .floating-card { display: none; }
+    .floating-card {
+        display: none;
+    }
 
-    .hero-visual { min-height: auto; margin-top: 10px; }
-    .hero-visual::before { display: none; }
+    .hero-visual {
+        min-height: auto;
+        margin-top: 10px;
+    }
+
+    .hero-visual::before {
+        display: none;
+    }
 
     .profile-image {
         width: 100%;
@@ -1667,6 +1702,39 @@ footer hr {
         border-width: 6px;
     }
 }
+
+
+/* =========================================================
+   EXPERIENCE CARD SPACING
+========================================================= */
+
 .experience-card + .experience-card {
     margin-top: 24px;
+}
+
+
+/* =========================================================
+   ADDITIONS: skills grid, hover delay, keyboard focus
+========================================================= */
+
+/* 18 skill cards: 3 columns on desktop so the last row is full */
+@media (min-width: 1101px) {
+    .skills-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Instant hover on cards (keeps the stagger delay for scroll only) */
+.skills-grid .skill-card:hover,
+.projects-grid .project-card:hover,
+.blog-grid .blog-card:hover {
+    transition-delay: 0s;
+}
+
+/* Visible keyboard focus for links and buttons */
+a:focus-visible,
+button:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 3px;
+    border-radius: 6px;
 }
