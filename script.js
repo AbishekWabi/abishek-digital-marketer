@@ -1,16 +1,17 @@
-document.addEventListener("DOMContentLoaded", () => {
+(function () {
+    "use strict";
 
-    /* =========================
-       ELEMENTS
-    ========================= */
-    const navbar = document.getElementById("navbar");
-    const menuToggle = document.getElementById("menuToggle");
-    const navLinksBox = document.getElementById("navLinks");
-    const navLinks = document.querySelectorAll(".nav-links a");
-    const sections = document.querySelectorAll("section[id]");
+    /* This file is loaded with "defer", so the page is already parsed. */
 
-    const ICON_BARS = '<i class="fa-solid fa-bars"></i>';
-    const ICON_CLOSE = '<i class="fa-solid fa-xmark"></i>';
+    var $ = function (selector, scope) { return (scope || document).querySelector(selector); };
+    var $$ = function (selector, scope) { return Array.prototype.slice.call((scope || document).querySelectorAll(selector)); };
+
+    var navbar = $("#navbar");
+    var menuToggle = $("#menuToggle");
+    var navLinksBox = $("#navLinks");
+
+    var ICON_BARS = '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+    var ICON_CLOSE = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
 
 
     /* =========================
@@ -26,20 +27,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (menuToggle && navLinksBox) {
 
-        menuToggle.addEventListener("click", () => {
-            const isOpen = navLinksBox.classList.toggle("open");
+        menuToggle.addEventListener("click", function () {
+            var isOpen = navLinksBox.classList.toggle("open");
             menuToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
             menuToggle.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
             menuToggle.innerHTML = isOpen ? ICON_CLOSE : ICON_BARS;
         });
 
         // Close the menu after tapping a link
-        navLinksBox.querySelectorAll("a").forEach(link => {
+        $$("a", navLinksBox).forEach(function (link) {
             link.addEventListener("click", closeMenu);
         });
 
         // Close the menu when tapping outside it
-        document.addEventListener("click", (e) => {
+        document.addEventListener("click", function (e) {
             if (!navLinksBox.classList.contains("open")) return;
             if (!navLinksBox.contains(e.target) && !menuToggle.contains(e.target)) {
                 closeMenu();
@@ -47,76 +48,69 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         // Close the menu with the Escape key
-        document.addEventListener("keydown", (e) => {
+        document.addEventListener("keydown", function (e) {
             if (e.key === "Escape") closeMenu();
         });
 
         // Reset the menu if the screen becomes wide
-        window.addEventListener("resize", () => {
+        window.addEventListener("resize", function () {
             if (window.innerWidth > 850) closeMenu();
         });
     }
 
 
     /* =========================
-       SCROLL EFFECTS
-       (navbar shadow + active link, one throttled listener)
+       NAVBAR SHADOW ON SCROLL
+       (one passive listener, no layout reads)
     ========================= */
-    let ticking = false;
+    if (navbar) {
+        var ticking = false;
 
-    function onScroll() {
-
-        // Navbar shadow
-        if (navbar) {
+        var updateNavbar = function () {
             navbar.classList.toggle("scrolled", window.scrollY > 50);
-        }
+            ticking = false;
+        };
 
-        // Active navigation link (only links that point to a section on this page)
-        let currentSection = "";
-
-        sections.forEach(section => {
-            const top = section.offsetTop - 150;
-            if (window.scrollY >= top && window.scrollY < top + section.offsetHeight) {
-                currentSection = section.getAttribute("id");
+        window.addEventListener("scroll", function () {
+            if (!ticking) {
+                window.requestAnimationFrame(updateNavbar);
+                ticking = true;
             }
-        });
+        }, { passive: true });
 
-        navLinks.forEach(link => {
-            const href = link.getAttribute("href");
-            if (href && href.startsWith("#")) {
-                link.classList.toggle("active", href === `#${currentSection}`);
-            }
-        });
-
-        ticking = false;
+        updateNavbar();
     }
-
-    window.addEventListener("scroll", () => {
-        if (!ticking) {
-            window.requestAnimationFrame(onScroll);
-            ticking = true;
-        }
-    }, { passive: true });
-
-    onScroll();
 
 
     /* =========================
-       SMOOTH SCROLL
-       (links that point to a section on the same page)
+       ACTIVE NAV LINK
+       (IntersectionObserver instead of measuring on every scroll)
     ========================= */
-    document.querySelectorAll('a[href^="#"]').forEach(link => {
-        link.addEventListener("click", function (e) {
-            const targetId = this.getAttribute("href");
-            if (!targetId || targetId === "#") return;
+    var linkMap = {};
 
-            const target = document.querySelector(targetId);
-            if (target) {
-                e.preventDefault();
-                target.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
-        });
+    $$('.nav-links a[href^="#"]').forEach(function (link) {
+        linkMap[link.getAttribute("href").slice(1)] = link;
     });
+
+    if ("IntersectionObserver" in window && Object.keys(linkMap).length) {
+
+        var spy = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+
+                Object.keys(linkMap).forEach(function (id) {
+                    linkMap[id].classList.remove("active");
+                });
+
+                var active = linkMap[entry.target.id];
+                if (active) active.classList.add("active");
+            });
+        }, { rootMargin: "-45% 0px -50% 0px" });
+
+        $$("main section[id]").forEach(function (section) {
+            spy.observe(section);
+        });
+    }
 
 
     /* =========================
@@ -124,47 +118,42 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================= */
     document.body.classList.remove("no-js");
 
-    const revealElements = document.querySelectorAll(".reveal");
+    var revealElements = $$(".reveal");
 
     if ("IntersectionObserver" in window) {
 
-        const revealObserver = new IntersectionObserver(
-            (entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add("active");
-                        observer.unobserve(entry.target);
-                    }
-                });
-            },
-            { threshold: 0.05, rootMargin: "0px 0px -40px 0px" }
-        );
+        var revealObserver = new IntersectionObserver(function (entries, observer) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("active");
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.05, rootMargin: "0px 0px -40px 0px" });
 
-        revealElements.forEach(el => revealObserver.observe(el));
+        revealElements.forEach(function (el) { revealObserver.observe(el); });
 
     } else {
         // Very old browsers: show everything
-        revealElements.forEach(el => el.classList.add("active"));
+        revealElements.forEach(function (el) { el.classList.add("active"); });
     }
 
 
     /* =========================
        FAQ ACCORDION
     ========================= */
-    const faqItems = document.querySelectorAll(".faq-item");
+    var faqItems = $$(".faq-item");
 
-    faqItems.forEach(item => {
-        const question = item.querySelector(".faq-question");
+    faqItems.forEach(function (item) {
+        var question = $(".faq-question", item);
         if (!question) return;
 
-        question.setAttribute("aria-expanded", "false");
+        question.addEventListener("click", function () {
+            var isActive = item.classList.contains("active");
 
-        question.addEventListener("click", () => {
-            const isActive = item.classList.contains("active");
-
-            faqItems.forEach(other => {
+            faqItems.forEach(function (other) {
                 other.classList.remove("active");
-                const q = other.querySelector(".faq-question");
+                var q = $(".faq-question", other);
                 if (q) q.setAttribute("aria-expanded", "false");
             });
 
@@ -178,31 +167,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================
        CONTACT FORM
+       (opens the visitor's email app)
     ========================= */
-    const contactForm = document.getElementById("contactForm");
-    const formMessage = document.getElementById("formMessage");
+    var contactForm = $("#contactForm");
+    var formMessage = $("#formMessage");
 
     if (contactForm && formMessage) {
 
         contactForm.addEventListener("submit", function (e) {
             e.preventDefault();
 
-            const name = document.getElementById("name").value.trim();
-            const email = document.getElementById("email").value.trim();
-            const subject = document.getElementById("subject").value.trim();
-            const message = document.getElementById("message").value.trim();
+            var name = $("#name").value.trim();
+            var email = $("#email").value.trim();
+            var subject = $("#subject").value.trim();
+            var message = $("#message").value.trim();
 
             if (!name || !email || !subject || !message) {
                 formMessage.textContent = "Please fill in all fields.";
                 return;
             }
 
-            const body = encodeURIComponent(
-                `Name: ${name}\nEmail: ${email}\n\n${message}`
+            var body = encodeURIComponent(
+                "Name: " + name + "\nEmail: " + email + "\n\n" + message
             );
 
             window.location.href =
-                `mailto:abishek1234ab@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+                "mailto:abishek1234ab@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + body;
 
             formMessage.textContent = "Opening your email app...";
         });
@@ -212,60 +202,26 @@ document.addEventListener("DOMContentLoaded", () => {
     /* =========================
        BUTTON RIPPLE
     ========================= */
-    document.querySelectorAll(".btn").forEach(button => {
+    $$(".btn").forEach(function (button) {
         button.addEventListener("click", function (e) {
-            const ripple = document.createElement("span");
-            const rect = this.getBoundingClientRect();
+            var ripple = document.createElement("span");
+            var rect = this.getBoundingClientRect();
 
-            ripple.style.left = `${e.clientX - rect.left}px`;
-            ripple.style.top = `${e.clientY - rect.top}px`;
+            ripple.style.left = (e.clientX - rect.left) + "px";
+            ripple.style.top = (e.clientY - rect.top) + "px";
             ripple.classList.add("ripple");
 
             this.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 600);
+            setTimeout(function () { ripple.remove(); }, 600);
         });
     });
 
 
     /* =========================
-       FLOATING CARD PARALLAX
-       (desktop with a mouse only)
-    ========================= */
-    const heroVisual = document.querySelector(".hero-visual");
-
-    if (heroVisual && window.matchMedia("(hover: hover) and (min-width: 851px)").matches) {
-
-        const cards = heroVisual.querySelectorAll(".floating-card");
-
-        heroVisual.addEventListener("mousemove", (e) => {
-            const rect = heroVisual.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width - 0.5;
-            const y = (e.clientY - rect.top) / rect.height - 0.5;
-
-            cards.forEach((card, index) => {
-                const movement = (index + 1) * 8;
-                card.style.transform = `translate(${x * movement}px, ${y * movement}px)`;
-            });
-        });
-
-        heroVisual.addEventListener("mouseleave", () => {
-            cards.forEach(card => {
-                card.style.transform = "";
-            });
-        });
-    }
-
-
-    /* =========================
        CURRENT YEAR IN FOOTER
     ========================= */
-    const footerBottom = document.querySelector(".footer-bottom");
+    $$(".js-year").forEach(function (el) {
+        el.textContent = new Date().getFullYear();
+    });
 
-    if (footerBottom) {
-        footerBottom.innerHTML = footerBottom.innerHTML.replace(
-            /©\s*\d{4}/,
-            `© ${new Date().getFullYear()}`
-        );
-    }
-
-});
+})();
