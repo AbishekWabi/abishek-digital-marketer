@@ -1652,3 +1652,18 @@ button:focus-visible {
         transition-duration: 0.01ms !important;
     }
 }
+/* Nav bar spacing for laptop screens */
+@media (min-width: 851px) and (max-width: 1250px) {
+
+    .nav-links {
+        gap: 14px;
+    }
+
+    .nav-links a {
+        font-size: 0.85rem;
+    }
+
+    .nav-links .nav-contact {
+        padding: 9px 14px;
+    }
+}
