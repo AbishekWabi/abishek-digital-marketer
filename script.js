@@ -203,12 +203,6 @@
                 return;
             }
 
-            var keyField = contactForm.elements["access_key"];
-            if (!keyField || !keyField.value || keyField.value === "YOUR_ACCESS_KEY_HERE") {
-                showStatus("error", "The form is not connected yet. Please contact me directly.", true);
-                return;
-            }
-
             var originalText = submitBtn ? submitBtn.textContent : "";
             if (submitBtn) {
                 submitBtn.disabled = true;
@@ -218,12 +212,25 @@
 
             fetch(contactForm.action, {
                 method: "POST",
-                headers: { "Accept": "application/json" },
-                body: new FormData(contactForm)
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    subject: subject,
+                    message: message,
+                    _subject: "New website enquiry: " + subject,
+                    _replyto: email,
+                    _template: "table",
+                    _captcha: "false"
+                })
             })
                 .then(function (response) {
                     return response.json().then(function (data) {
-                        return { ok: response.ok && data.success, data: data };
+                        var ok = response.ok && (data.success === true || data.success === "true");
+                        return { ok: ok, data: data };
                     });
                 })
                 .then(function (result) {
