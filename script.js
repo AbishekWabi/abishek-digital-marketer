@@ -167,10 +167,26 @@
 
     /* =========================
        CONTACT FORM
-       (opens the visitor's email app)
+       (sends in the background, visitor stays on the page)
     ========================= */
     var contactForm = $("#contactForm");
     var formMessage = $("#formMessage");
+    var submitBtn = $("#submitBtn");
+    var WHATSAPP_URL = "https://wa.me/919489240449";
+
+    function showStatus(type, text, withWhatsApp) {
+        formMessage.className = "mt-3 form-status " + type;
+        formMessage.textContent = text;
+
+        if (withWhatsApp) {
+            var link = document.createElement("a");
+            link.href = WHATSAPP_URL;
+            link.target = "_blank";
+            link.rel = "noopener";
+            link.textContent = " Chat on WhatsApp";
+            formMessage.appendChild(link);
+        }
+    }
 
     if (contactForm && formMessage) {
 
@@ -183,18 +199,50 @@
             var message = $("#message").value.trim();
 
             if (!name || !email || !subject || !message) {
-                formMessage.textContent = "Please fill in all fields.";
+                showStatus("error", "Please fill in all fields.");
                 return;
             }
 
-            var body = encodeURIComponent(
-                "Name: " + name + "\nEmail: " + email + "\n\n" + message
-            );
+            var keyField = contactForm.elements["access_key"];
+            if (!keyField || !keyField.value || keyField.value === "YOUR_ACCESS_KEY_HERE") {
+                showStatus("error", "The form is not connected yet. Please contact me directly.", true);
+                return;
+            }
 
-            window.location.href =
-                "mailto:abishek1234ab@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + body;
+            var originalText = submitBtn ? submitBtn.textContent : "";
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Sending...";
+            }
+            showStatus("", "");
 
-            formMessage.textContent = "Opening your email app...";
+            fetch(contactForm.action, {
+                method: "POST",
+                headers: { "Accept": "application/json" },
+                body: new FormData(contactForm)
+            })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok && data.success, data: data };
+                    });
+                })
+                .then(function (result) {
+                    if (result.ok) {
+                        contactForm.reset();
+                        showStatus("success", "Thank you! Your message has been sent. I will reply soon.");
+                    } else {
+                        showStatus("error", "Sorry, your message could not be sent. Please try again or", true);
+                    }
+                })
+                .catch(function () {
+                    showStatus("error", "Sorry, there was a network problem. Please try again or", true);
+                })
+                .then(function () {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }
+                });
         });
     }
 
