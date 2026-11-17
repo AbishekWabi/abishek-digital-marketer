@@ -262,5 +262,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </footer>
 
 <script src="script.js?v=20261111b" defer></script>
+  <script>
+
+document.getElementById('contactForm').addEventListener('submit', function () {
+
+  gtag('event', 'event_1', {
+
+    form_name: 'contact',
+
+    transport_type: 'beacon'
+
+  });
+
+});
+
+</script>
 </body>
 </html>
